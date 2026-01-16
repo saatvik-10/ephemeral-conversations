@@ -22,4 +22,4 @@ export const USERNAME = [
   "cm_punk",
 ];
 
-export const USER_CHAT_KEY = "user_talk_sync";
+export const USER_CHAT_KEY = "ephemeral_conversations";
