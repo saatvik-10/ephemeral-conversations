@@ -2,9 +2,22 @@
 
 import { useRef, useState } from "react";
 
-const ChatComponent = () => {
+interface ChatSubmissionProps {
+  sendMsg: ({ text }: { text: string }) => void;
+  isPending: boolean;
+}
+
+const ChatComponent = ({ sendMsg, isPending }: ChatSubmissionProps) => {
   const [input, setInput] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleChatText = () => {
+    if (!input.trim()) return;
+
+    sendMsg({ text: input });
+    setInput("");
+    inputRef.current?.focus();
+  };
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -23,11 +36,7 @@ const ChatComponent = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && input.trim()) {
-                  //sending msg
-
-                  inputRef.current?.focus();
-                }
+                if (e.key === "Enter") handleChatText();
               }}
               placeholder="Start Conversation..."
               autoFocus
@@ -35,7 +44,11 @@ const ChatComponent = () => {
             />
           </div>
 
-          <button className="cursor-pointer rounded-md bg-zinc-800 px-6 text-sm font-bold text-zinc-400 transition-all hover:bg-blue-800 hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-50">
+          <button
+            onClick={handleChatText}
+            disabled={!input.trim() || isPending}
+            className="cursor-pointer rounded-md bg-zinc-800 px-6 text-sm font-bold text-zinc-400 transition-all hover:bg-blue-800 hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+          >
             Send
           </button>
         </div>

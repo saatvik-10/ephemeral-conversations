@@ -4,13 +4,34 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { cn, formatTimeRemaining } from "../../../lib/utils";
 import ChatComponent from "@/components/ChatComponent";
+import { useMutation } from "@tanstack/react-query";
+import { client } from "@/lib/client";
+import { useUsername } from "@/hooks/useUsername";
 
 const Page = () => {
   const params = useParams();
   const roomId = params.roomId as string;
 
+  const { username } = useUsername();
+
   const [copyStatus, setCopyStatus] = useState<string>("COPY");
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+
+  const { mutate: sendMsg, isPending } = useMutation({
+    mutationFn: async ({ text }: { text: string }) => {
+      try {
+        await client.msgs.post(
+          {
+            sender: username,
+            text,
+          },
+          { query: { roomId } },
+        );
+      } catch (err) {
+        console.log("Error sending message", err);
+      }
+    },
+  });
 
   const handleCopyRoomId = () => {
     const roomUrl = window.location.href;
@@ -70,7 +91,7 @@ const Page = () => {
           </button>
         </div>
 
-        <ChatComponent />
+        <ChatComponent isPending={isPending} sendMsg={sendMsg} />
       </div>
     </main>
   );
