@@ -1,15 +1,21 @@
 "use client";
 
+import { useUsername } from "@/hooks/useUsername";
+import { Message } from "@/lib/realtime";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 import { useRef, useState } from "react";
 
 interface ChatSubmissionProps {
   sendMsg: ({ text }: { text: string }) => void;
   isPending: boolean;
+  msgs: Message[];
 }
 
-const ChatComponent = ({ sendMsg, isPending }: ChatSubmissionProps) => {
+const ChatComponent = ({ sendMsg, isPending, msgs }: ChatSubmissionProps) => {
   const [input, setInput] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const { username } = useUsername();
 
   const handleChatText = () => {
     if (!input.trim()) return;
@@ -22,7 +28,41 @@ const ChatComponent = ({ sendMsg, isPending }: ChatSubmissionProps) => {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="scrollbar-thin flex-1 space-y-4 overflow-y-auto p-4">
-        all msg
+        {msgs?.length === 0 && (
+          <div className="flex h-full items-center justify-center">
+            <p className="font-mono text-xs text-zinc-600 md:text-base">
+              Silence is{" "}
+              <span className="font-bold text-yellow-600">Golden</span>, but
+              words are{" "}
+              <span className="font-bold text-green-600">Ephemeral</span>!
+            </p>
+          </div>
+        )}
+
+        {msgs.map((msg) => (
+          <div key={msg.id} className="flex flex-col items-start">
+            <div className="group max-w-[80%]">
+              <div className="mb-1 flex items-baseline gap-3">
+                <span
+                  className={cn(
+                    "text-xs font-bold",
+                    `${msg.sender === username ? "text-blue-500" : "text-green-500"}`,
+                  )}
+                >
+                  {msg.sender === username ? "YOU" : msg.sender}
+                </span>
+
+                <span className="text-[10px] text-zinc-600">
+                  {format(msg.timestamp, "HH:mm")}
+                </span>
+
+                <p className="text-sm text-zinc-300 leading-relaxed break-all">
+                  {msg.text}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="rounded-lg border-t border-zinc-800 bg-zinc-900/30 p-4">
