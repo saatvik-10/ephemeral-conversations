@@ -9,11 +9,13 @@ import { client } from "@/lib/client";
 import { useUsername } from "@/hooks/useUsername";
 import { Message } from "@/lib/realtime";
 import { useRealtime } from "@/lib/realtime-client";
+import { useRouter } from "next/navigation";
 
 const Page = () => {
   const params = useParams();
   const roomId = params.roomId as string;
 
+  const route = useRouter();
   const { username } = useUsername();
 
   const [copyStatus, setCopyStatus] = useState<string>("COPY");
@@ -52,6 +54,10 @@ const Page = () => {
     onData: ({ event }) => {
       if (event === "chat.message") {
         refetch();
+      }
+
+      if (event === "chat.destroy") {
+        route.push("/?destroyed=true");
       }
     },
   });
