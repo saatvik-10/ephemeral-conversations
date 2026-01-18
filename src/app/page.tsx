@@ -41,8 +41,16 @@ export default function Home() {
 
   useEffect(() => {
     if (isDestroyed) {
-      toast.error("Every word has been purged from existence!", {
+      toast("Room Destroyed! All messages have been purged from existence.", {
         id: "destroyed",
+        duration: 4000,
+        style: {
+          border: "1px solid oklch(62.3% 0.214 259.815)",
+          padding: "16px",
+          color: "oklch(62.3% 0.214 259.815)",
+          backgroundColor: "oklch(95% 0.05 259.815)",
+          fontWeight: "bold",
+        },
       });
     } else if (err && errMessages[err as keyof typeof errMessages]) {
       toast.error(errMessages[err as keyof typeof errMessages], { id: err });
