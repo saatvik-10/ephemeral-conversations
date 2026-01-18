@@ -19,7 +19,7 @@ export default function Home() {
 function Page() {
   const route = useRouter();
 
-  const [allowedParticipants, setallowedParticipants] = useState<number>(0);
+  const [allowedParticipants, setallowedParticipants] = useState<number>(2);
 
   const { username } = useUsername();
   const searchParams = useSearchParams();
@@ -27,7 +27,7 @@ function Page() {
   const isDestroyed = searchParams.get("destroyed") === "true";
   const err = searchParams.get("err");
 
-  const { mutate: createRoom } = useMutation({
+  const { mutate: createRoom, isPending } = useMutation({
     mutationFn: async () => {
       const res = await client.room.create.post({
         allowedParticipants,
@@ -112,6 +112,7 @@ function Page() {
             </div>
 
             <button
+              disabled={isPending || allowedParticipants < 2}
               onClick={() => createRoom()}
               className="mt-2 w-full cursor-pointer rounded-md bg-zinc-100 p-3 text-black transition-colors hover:bg-zinc-50 hover:not-only:text-black disabled:opacity-50"
             >
