@@ -24,3 +24,15 @@ body {
   color: var(--foreground);
   font-family: var(--font-jetbrains-mono);
 }
+
+::-webkit-scrollbar {
+  width: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(70.5% 0.015 286.067);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
