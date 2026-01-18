@@ -64,16 +64,15 @@ const rooms = new Elysia({ prefix: "/room" })
     "/",
     async ({ auth }) => {
       const { roomId } = auth;
+      await realtime.channel(roomId).emit("chat.destroy", {
+        isDestoyed: true,
+      });
 
       await Promise.all([
         redis.del(roomId),
         redis.del(`meta_room_id: ${roomId}`),
         redis.del(`msgs: ${roomId}`),
       ]);
-
-      await realtime.channel(roomId).emit("chat.destroy", {
-        isDestoyed: true,
-      });
     },
     {
       query: querySchema,
