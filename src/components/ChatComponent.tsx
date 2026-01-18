@@ -15,7 +15,7 @@ interface ChatSubmissionProps {
 const ChatComponent = ({ sendMsg, isPending, msgs }: ChatSubmissionProps) => {
   const [input, setInput] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
-  
+
   const { username } = useUsername();
 
   const handleChatText = () => {
@@ -48,8 +48,8 @@ const ChatComponent = ({ sendMsg, isPending, msgs }: ChatSubmissionProps) => {
               msg.sender === username ? "items-end" : "items-start",
             )}
           >
-            <div className="group max-w-[80%]">
-              <div className="mb-1 flex items-baseline gap-3">
+            <div className="group max-w-[45%]">
+              <div className="mb-1 flex items-baseline justify-end gap-3">
                 <span
                   className={cn(
                     "text-xs font-bold",
