@@ -13,7 +13,7 @@ const rooms = new Elysia({ prefix: "/room" })
       const roomId = nanoid();
       const { allowedParticipants } = body;
 
-      if (!allowedParticipants || allowedParticipants <= 0) {
+      if (!allowedParticipants || allowedParticipants < 2) {
         throw new Error("invalid-capacity");
       }
 
