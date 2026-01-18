@@ -4,7 +4,7 @@ import { useUsername } from "@/hooks/useUsername";
 import { Message } from "@/lib/realtime";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
 interface ChatSubmissionProps {
   sendMsg: ({ text }: { text: string }) => void;
@@ -15,8 +15,16 @@ interface ChatSubmissionProps {
 const ChatComponent = ({ sendMsg, isPending, msgs }: ChatSubmissionProps) => {
   const [input, setInput] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
 
   const { username } = useUsername();
+
+  useEffect(() => {
+    if (messageContainerRef.current) {
+      messageContainerRef.current.scrollTop =
+        messageContainerRef.current.scrollHeight;
+    }
+  }, [msgs]);
 
   const handleChatText = () => {
     if (!input.trim()) return;
@@ -27,55 +35,57 @@ const ChatComponent = ({ sendMsg, isPending, msgs }: ChatSubmissionProps) => {
   };
 
   return (
-    <>
-    <div className="flex flex-1 flex-col overflow-hidden border border-zinc-600 rounded-lg my-3">
-      <div className="scrollbar-thin flex-1 space-y-4 overflow-y-auto p-4">
-        {msgs?.length === 0 && (
-          <div className="flex h-full items-center justify-center">
-            <p className="font-mono text-xs text-zinc-600 md:text-base">
-              Silence is{" "}
-              <span className="font-bold text-yellow-600">Golden</span>, but
-              words are{" "}
-              <span className="font-bold text-green-600">Ephemeral</span>!
-            </p>
-          </div>
-        )}
-
-        {msgs.map((msg) => (
-          <div
-            key={msg.id}
-            className={cn(
-              "flex flex-col",
-              msg.sender === username ? "items-end" : "items-start",
-            )}
-          >
-            <div className="group max-w-[45%]">
-              <div className="mb-1 flex items-baseline justify-end gap-3">
-                <span
-                  className={cn(
-                    "text-xs font-bold",
-                    msg.sender === username
-                      ? "text-blue-500"
-                      : "text-green-500",
-                  )}
-                >
-                  {msg.sender === username ? "YOU" : msg.sender}
-                </span>
-
-                <span className="text-[10px] text-zinc-500">
-                  {format(msg.timestamp, "HH:mm")}
-                </span>
-              </div>
-
-              <p className="text-sm leading-relaxed break-all text-zinc-300 md:text-base">
-                {msg.text}
+    <main>
+      <div className="my-3 flex flex-1 flex-col overflow-hidden rounded-lg border border-zinc-600">
+        <div
+          ref={messageContainerRef}
+          className="scrollbar-thin flex-1 space-y-4 overflow-y-auto p-4"
+        >
+          {msgs?.length === 0 && (
+            <div className="flex h-full items-center justify-center">
+              <p className="font-mono text-xs text-zinc-600 md:text-base">
+                Silence is{" "}
+                <span className="font-bold text-yellow-600">Golden</span>, but
+                words are{" "}
+                <span className="font-bold text-green-600">Ephemeral</span>!
               </p>
             </div>
-          </div>
-        ))}
-      </div>
+          )}
 
-    </div>
+          {msgs.map((msg) => (
+            <div
+              key={msg.id}
+              className={cn(
+                "flex flex-col",
+                msg.sender === username ? "items-end" : "items-start",
+              )}
+            >
+              <div className="group max-w-[45%]">
+                <div className="mb-1 flex items-baseline justify-end gap-3">
+                  <span
+                    className={cn(
+                      "text-xs font-bold",
+                      msg.sender === username
+                        ? "text-blue-500"
+                        : "text-green-500",
+                    )}
+                  >
+                    {msg.sender === username ? "YOU" : msg.sender}
+                  </span>
+
+                  <span className="text-[10px] text-zinc-500">
+                    {format(msg.timestamp, "HH:mm")}
+                  </span>
+                </div>
+
+                <p className="text-sm leading-relaxed break-all text-zinc-300 md:text-base">
+                  {msg.text}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
       <div className="rounded-lg border-t border-zinc-800 bg-zinc-900/30 p-4">
         <div className="flex gap-4">
           <div className="group relative flex-1">
@@ -104,7 +114,7 @@ const ChatComponent = ({ sendMsg, isPending, msgs }: ChatSubmissionProps) => {
           </button>
         </div>
       </div>
-      </>
+    </main>
   );
 };
 
