@@ -59,6 +59,25 @@ const rooms = new Elysia({ prefix: "/room" })
       };
     },
     { query: querySchema },
+  )
+  .delete(
+    "/",
+    async ({ auth }) => {
+      const { roomId } = auth;
+
+      await Promise.all([
+        redis.del(roomId),
+        redis.del(`meta_room_id: ${roomId}`),
+        redis.del(`msgs: ${roomId}`),
+      ]);
+
+      await realtime.channel(roomId).emit("chat.destroy", {
+        isDestoyed: true,
+      });
+    },
+    {
+      query: querySchema,
+    },
   );
 
 const msgs = new Elysia({ prefix: "/msgs" })
@@ -119,25 +138,6 @@ const msgs = new Elysia({ prefix: "/msgs" })
     {
       query: querySchema,
     },
-  )
-  .delete(
-    "/",
-    async ({ auth }) => {
-      const { roomId } = auth;
-
-      await Promise.all([
-        redis.del(roomId),
-        redis.del(`meta_room_id: ${roomId}`),
-        redis.del(`msgs: ${roomId}`),
-      ]);
-
-      await realtime.channel(roomId).emit("chat.destroy", {
-        isDestoyed: true,
-      });
-    },
-    {
-      query: querySchema,
-    },
   );
 
 const app = new Elysia({ prefix: "/api" }).use(rooms).use(msgs);
@@ -146,3 +146,4 @@ export type App = typeof app;
 
 export const GET = app.fetch;
 export const POST = app.fetch;
+export const DELETE = app.fetch;
