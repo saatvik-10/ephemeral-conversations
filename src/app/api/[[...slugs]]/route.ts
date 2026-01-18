@@ -120,15 +120,21 @@ const msgs = new Elysia({ prefix: "/msgs" })
       query: querySchema,
     },
   )
-  .delete("/", async ({ auth }) => {
-    const { roomId } = auth;
+  .delete(
+    "/",
+    async ({ auth }) => {
+      const { roomId } = auth;
 
-    await Promise.all([
-      redis.del(roomId),
-      redis.del(`meta_room_id: ${roomId}`),
-      redis.del(`msgs: ${roomId}`),
-    ]);
-  });
+      await Promise.all([
+        redis.del(roomId),
+        redis.del(`meta_room_id: ${roomId}`),
+        redis.del(`msgs: ${roomId}`),
+      ]);
+    },
+    {
+      query: querySchema,
+    },
+  );
 
 const app = new Elysia({ prefix: "/api" }).use(rooms).use(msgs);
 
