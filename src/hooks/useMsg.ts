@@ -3,12 +3,12 @@ import { Message } from "@/lib/realtime";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
-type useMsgProps = {
+type UseMsgProps = {
   roomId: string;
   username: string;
 };
 
-export function useMsg({ roomId, username }: useMsgProps) {
+export function useMsg({ roomId, username }: UseMsgProps) {
   const { data: msgs = [], refetch } = useQuery<Message[]>({
     queryKey: ["msgs", roomId],
     queryFn: async () => {
