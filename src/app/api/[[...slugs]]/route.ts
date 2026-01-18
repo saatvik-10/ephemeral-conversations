@@ -6,33 +6,60 @@ import { bodySchema, querySchema } from "@/validator/msg.validator";
 import { Message, realtime } from "@/lib/realtime";
 import { allowedParticipantsSchema } from "@/validator/chat.validator";
 
-const rooms = new Elysia({ prefix: "/room" }).post(
-  "/create",
-  async ({ body }) => {
-    const roomId = nanoid();
-    const { allowedParticipants } = body;
+const rooms = new Elysia({ prefix: "/room" })
+  .post(
+    "/create",
+    async ({ body }) => {
+      const roomId = nanoid();
+      const { allowedParticipants } = body;
 
-    if (!allowedParticipants || allowedParticipants <= 0) {
-      throw new Error("invalid-capacity");
-    }
+      if (!allowedParticipants || allowedParticipants <= 0) {
+        throw new Error("invalid-capacity");
+      }
 
-    await redis.hset(`meta_room_id: ${roomId}`, {
-      connected: [],
-      allowedParticipants,
-      createdAt: Date.now(),
-    });
+      await redis.hset(`meta_room_id: ${roomId}`, {
+        connected: [],
+        allowedParticipants,
+        createdAt: Date.now(),
+      });
 
-    await redis.expire(
-      `meta_room_id: ${roomId}`,
-      Number(process.env.ROOM_TTL_SECONDS),
-    );
+      await redis.expire(
+        `meta_room_id: ${roomId}`,
+        Number(process.env.ROOM_TTL_SECONDS),
+      );
 
-    return { roomId };
-  },
-  {
-    body: allowedParticipantsSchema,
-  },
-);
+      return { roomId };
+    },
+    {
+      body: allowedParticipantsSchema,
+    },
+  )
+  .use(authProxy)
+  .get(
+    "/ttl",
+    async ({ auth }) => {
+      const { roomId } = auth;
+
+      const ttl = await redis.ttl(`meta_room_id: ${roomId}`);
+
+      return { ttl: ttl > 0 ? ttl : 0 };
+    },
+    { query: querySchema },
+  )
+  .get(
+    "/meta",
+    async ({ auth }) => {
+      const { roomId } = auth;
+
+      const roomMeta = await redis.hgetall(`meta_room_id: ${roomId}`);
+
+      return {
+        allowedParticipants: roomMeta?.allowedParticipants,
+        connected: (roomMeta?.connected as string[])?.length,
+      };
+    },
+    { query: querySchema },
+  );
 
 const msgs = new Elysia({ prefix: "/msgs" })
   .use(authProxy)
