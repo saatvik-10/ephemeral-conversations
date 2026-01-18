@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { cn, formatTimeRemaining } from "../../../lib/utils";
 import ChatComponent from "@/components/ChatComponent";
@@ -19,7 +19,60 @@ const Page = () => {
   const { username } = useUsername();
 
   const [copyStatus, setCopyStatus] = useState<string>("COPY");
-  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number>();
+  const [totalMembers, setTotalMembers] = useState<number>();
+
+  const { data: ttlData } = useQuery({
+    queryKey: ["ttl", roomId],
+    queryFn: async () => {
+      const res = await client.room.ttl.get({
+        query: { roomId },
+      });
+      return res.data;
+    },
+  });
+
+  const { data: metaData } = useQuery({
+    queryKey: ["meta", roomId],
+    queryFn: async () => {
+      const res = await client.room.meta.get({
+        query: { roomId },
+      });
+      return res.data;
+    },
+  });
+
+  useEffect(() => {
+    if (ttlData?.ttl !== undefined) {
+      setTimeRemaining(ttlData.ttl);
+    }
+  }, [ttlData?.ttl]);
+
+  useEffect(() => {
+    if (metaData?.connected !== undefined) {
+      setTotalMembers(metaData.connected);
+    }
+  }, [metaData?.connected]);
+
+  useEffect(() => {
+    if (timeRemaining === undefined || timeRemaining <= 0) {
+      if (timeRemaining === 0) {
+        route.push("/?destroyed=true");
+      }
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev === undefined || prev <= 1) {
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timeRemaining, route]);
 
   const { data: msgs = [], refetch } = useQuery<Message[]>({
     queryKey: ["msgs", roomId],
@@ -27,7 +80,6 @@ const Page = () => {
       const res = await client.msgs.get({
         query: { roomId },
       });
-
       return (res.data?.msgs as []) || [];
     },
   });
@@ -103,7 +155,7 @@ const Page = () => {
               <span
                 className={cn(
                   "flex items-center gap-2 text-sm font-bold",
-                  timeRemaining !== null && timeRemaining < 60
+                  timeRemaining !== null && timeRemaining! < 60
                     ? "text-red-500"
                     : "text-amber-500",
                 )}
@@ -111,6 +163,15 @@ const Page = () => {
                 {timeRemaining != null
                   ? formatTimeRemaining(timeRemaining)
                   : "--:--"}
+              </span>
+            </div>
+            <div className="mx-4 h-8 w-px bg-zinc-800" />
+
+            <div className="flex flex-col items-center">
+              <span className="text-xs text-zinc-500 uppercase">Allowed</span>
+
+              <span className="flex items-center gap-2 text-sm font-bold">
+                {totalMembers}/{metaData?.allowedParticipants as number}
               </span>
             </div>
           </div>
